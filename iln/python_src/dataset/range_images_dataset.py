@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 
 import numpy as np
 import os
+import skimage
 
 from dataset.dataset_utils import register_dataset, read_range_image_binary, initialize_lidar
 
@@ -29,27 +30,39 @@ class RangeImagesDataset(Dataset):
         self.memory_fetch = memory_fetch
 
         # Read the LiDAR configurations
-        lidar_config_filename = os.path.join(directory, 'lidar_specification.yaml')
-        self.lidar_in = initialize_lidar(lidar_config_filename, channels=int(res_in.split('_')[0]), points_per_ring=int(res_in.split('_')[1]))
-        self.lidar_out = initialize_lidar(lidar_config_filename, channels=int(res_out.split('_')[0]), points_per_ring=int(res_out.split('_')[1]))
+        # lidar_config_filename = os.path.join(directory, 'lidar_specification.yaml')
+        self.lidar_in = initialize_lidar(channels=int(res_in.split('_')[0]), points_per_ring=int(res_in.split('_')[1]))
+        self.lidar_out = initialize_lidar(channels=int(res_out.split('_')[0]), points_per_ring=int(res_out.split('_')[1]))
 
         # Read all the filenames
         self.input_range_image_filenames = []
         self.output_range_image_filenames = []
 
-        for scene_id in scene_ids:
-            input_directory = os.path.join(directory, scene_id, res_in)
-            input_filenames = [os.path.join(input_directory, f) for f in os.listdir(input_directory) if f.endswith('.rimg')]
-            input_filenames.sort()
+        input_directory = os.path.join(directory, 'range_proj', 'train', 'in_vol')
+        input_filenames = [os.path.join(input_directory, f) for f in os.listdir(input_directory) if f.endswith('.npy')]
+        input_filenames.sort()
 
-            output_directory = os.path.join(directory, scene_id, res_out)
-            output_filenames = [os.path.join(output_directory, f) for f in os.listdir(output_directory) if f.endswith('.rimg')]
-            output_filenames.sort()
+        output_directory = os.path.join(directory, 'range_proj_high_res', 'train', 'in_vol')
+        output_filenames = [os.path.join(output_directory, f) for f in os.listdir(output_directory) if f.endswith('.npy')]
+        output_filenames.sort()
 
-            assert (len(input_filenames) == len(output_filenames))
+        assert (len(input_filenames) == len(output_filenames))
 
-            self.input_range_image_filenames.extend(input_filenames)
-            self.output_range_image_filenames.extend(output_filenames)
+        self.input_range_image_filenames.extend(input_filenames)
+        self.output_range_image_filenames.extend(output_filenames)
+
+        input_directory = os.path.join(directory, 'range_proj_nusc', 'train', 'in_vol')
+        input_filenames = [os.path.join(input_directory, f) for f in os.listdir(input_directory) if f.endswith('.npy')]
+        input_filenames.sort()
+
+        output_directory = os.path.join(directory, 'range_proj_high_res', 'train', 'in_vol')
+        output_filenames = [os.path.join(output_directory, f) for f in os.listdir(output_directory) if f.endswith('.npy')]
+        output_filenames.sort()
+
+        assert (len(input_filenames) == len(output_filenames))
+
+        self.input_range_image_filenames.extend(input_filenames)
+        self.output_range_image_filenames.extend(output_filenames)
 
         # Fetch all the data pairs into the memory storage
         # NOTE: This can provide fast training/testing despite requiring a large memory size
@@ -98,6 +111,7 @@ class RangeImagesDataset(Dataset):
             input_range_image = read_range_image_binary(input_range_image_filename)
             output_range_image = read_range_image_binary(output_range_image_filename)
 
+            input_range_image = skimage.measure.block_reduce(input_range_image, block_size=(4,2))
             # Crop the values out of the detection range
             input_range_image[input_range_image < 10e-10] = self.lidar_in['norm_r']
             input_range_image[input_range_image < self.lidar_in['min_r']] = 0.0

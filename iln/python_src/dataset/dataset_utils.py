@@ -31,24 +31,31 @@ def read_range_image_binary(filename, dtype=np.float16, lidar=None):
     :param lidar: LiDAR specification for crop the invalid detection distances
     :return: range image encoded by float32 type
     """
-    range_image_file = open(filename, 'rb')
 
-    # Read the size of range image
-    size = np.fromfile(range_image_file, dtype=np.uint, count=2)
+    range_image = np.load(filename)[0,0]
+    proj_mask = np.load(filename.replace('in_vol','proj_mask')).astype(np.float32)[0]
+    # proj_mask = torch.from_numpy(proj_mask).clone()[0]
+    # proj = torch.from_numpy(proj).clone()[0]
+    range_image = range_image * proj_mask
 
-    # Read the range image
-    range_image = np.fromfile(range_image_file, dtype=dtype)
-    range_image = range_image.reshape(size[1], size[0])
-    range_image = range_image.transpose()
-    range_image = range_image.astype(np.float32)
+    # range_image_file = open(filename, 'rb')
+    #
+    # # Read the size of range image
+    # size = np.fromfile(range_image_file, dtype=np.uint, count=2)
+    #
+    # # Read the range image
+    # range_image = np.fromfile(range_image_file, dtype=dtype)
+    # range_image = range_image.reshape(size[1], size[0])
+    # range_image = range_image.transpose()
+    # range_image = range_image.astype(np.float32)
 
-    if lidar is not None:
-        # Crop the values out of the detection range
-        range_image[range_image < 10e-10] = lidar['norm_r']
-        range_image[range_image < lidar['min_r']] = 0.0
-        range_image[range_image > lidar['max_r']] = lidar['norm_r']
+    # if lidar is not None:
+    #     # Crop the values out of the detection range
+    #     range_image[range_image < 10e-10] = lidar['norm_r']
+    #     range_image[range_image < lidar['min_r']] = 0.0
+    #     range_image[range_image > lidar['max_r']] = lidar['norm_r']
 
-    range_image_file.close()
+    # range_image_file.close()
 
     return range_image.astype(np.float32)
 
@@ -120,8 +127,37 @@ def write_range_samples_binary(filename, range_samples, dtype=np.float16):
 
     return
 
+def initialize_lidar(channels, points_per_ring):
+    """
+    Initialize a LiDAR having given laser resolutions from a configuration file.
 
-def initialize_lidar(filename, channels, points_per_ring):
+    :param filename: LiDAR configuration filename [.yaml]
+    :param channels: number of vertical angles (vertical resolution)
+    :param points_per_ring: number of horizontal angles (horizontal resolution)
+    :return: LiDAR specification
+    """
+    lidar = dict()
+
+    lidar['channels'] = channels
+    lidar['points_per_ring'] = points_per_ring
+    lidar['norm_r'] = 100.0
+    lidar['max_r'] = 70.0
+    lidar['min_r'] = 2.0
+    lidar['max_v'] = 10.0
+    lidar['min_v'] = -30.0
+    lidar['max_h'] = 180.0
+    lidar['min_h'] = -180.0
+    lidar['frequency'] = 10
+    lidar['max_search'] = 100.0
+
+    lidar['max_v'] *= (np.pi / 180.0)  # [rad]
+    lidar['min_v'] *= (np.pi / 180.0)  # [rad]
+    lidar['max_h'] *= (np.pi / 180.0)  # [rad]
+    lidar['min_h'] *= (np.pi / 180.0)  # [rad]
+
+    return lidar
+
+def initialize_lidar_old(filename, channels, points_per_ring):
     """
     Initialize a LiDAR having given laser resolutions from a configuration file.
 

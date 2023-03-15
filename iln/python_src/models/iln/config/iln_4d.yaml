@@ -2,7 +2,7 @@ dataset:
   name: Carla
   type: range_samples_from_image
   args:
-    directory: ./dataset/Carla
+    directory: /media/user/storage/data/ # ./dataset/Carla # /media/user/storage/data/sem_test
     scene_ids:
       - Town01
       - Town02
@@ -10,8 +10,8 @@ dataset:
       - Town04
       - Town05
       - Town06
-    res_in: '16_1024'
-    res_out: '128_2048'
+    res_in: '16_1024' # 16_1024
+    res_out: '256_2048' # 128_2048
     num_of_samples: 16384
     memory_fetch: false
 
