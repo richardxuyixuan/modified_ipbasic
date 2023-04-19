@@ -20,7 +20,7 @@ from models.model_utils import generate_model
 import rospy
 from sensor_msgs.msg import PointCloud2
 from visualization.visualization_utils import get_pointcloud_xyz
-
+import skimage
 import voxelizer
 
 
@@ -107,6 +107,8 @@ if __name__ == '__main__':
 
     # Read the input range image
     input_range_image = read_range_image_binary(input_filename, lidar=lidar_in)
+    input_range_image = skimage.measure.block_reduce(input_range_image, block_size=(4, 2))
+
     input_range_image = normalization_ranges(input_range_image, norm_r=lidar_in['norm_r'])
 
     res_idx = 0

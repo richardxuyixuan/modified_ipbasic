@@ -17,6 +17,7 @@ from models.model_utils import generate_model
 
 # Other utils
 from visualization.visualization_utils import draw_range_image
+import skimage
 
 
 def predict_detection_distances(input_image, pixel_centers, pred_batch=100000):
@@ -102,7 +103,14 @@ if __name__ == '__main__':
 
     # Read the input range image (normalized)
     input_range_image = read_range_image_binary(input_filename, lidar=lidar_in)
+    # input_range_image = skimage.measure.block_reduce(input_range_image, block_size=(4, 2))
+
     input_range_image = normalization_ranges(input_range_image, norm_r=lidar_in['norm_r'])
+
+    # 1. Draw the input range image
+    output_filename = os.path.join(output_directory, 'demo_input_range_image.png') if output_directory else None
+    draw_range_image(range_image=input_range_image, filename=output_filename)
+    print('Save the input range image:', output_filename)
 
     # Generate the query lasers (normalized)
     query_lasers = generate_laser_directions(lidar_out)
@@ -114,19 +122,15 @@ if __name__ == '__main__':
                                                            pred_batch=100000)
     pred_range_image = pred_detection_distances.reshape(lidar_out['channels'], lidar_out['points_per_ring'])
 
-    # 1. Draw the input range image
-    output_filename = os.path.join(output_directory, 'demo_input_range_image.png') if output_directory else None
-    draw_range_image(range_image=input_range_image, filename=output_filename)
-    print('Save the input range image:', output_filename)
 
     # 2. Draw the output range image
     output_filename = os.path.join(output_directory, 'demo_output_range_image.png') if output_directory else None
     draw_range_image(range_image=pred_range_image, filename=output_filename)
     print('Save the output range image:', output_filename)
 
-    # 3. Save the output range image [.rimg]
-    output_filename = os.path.join(output_directory, 'output_range_image.rimg') if output_directory else None
-    denormalized_pred_range_image = denormalization_ranges(pred_range_image, norm_r=lidar_out['norm_r'])
-    write_range_image_binary(range_image=denormalized_pred_range_image, filename=output_filename)
-    print('Save the output range image [.rimg]:', output_filename)
+    # # 3. Save the output range image [.rimg]
+    # output_filename = os.path.join(output_directory, 'output_range_image.rimg') if output_directory else None
+    # denormalized_pred_range_image = denormalization_ranges(pred_range_image, norm_r=lidar_out['norm_r'])
+    # write_range_image_binary(range_image=denormalized_pred_range_image, filename=output_filename)
+    # print('Save the output range image [.rimg]:', output_filename)
 

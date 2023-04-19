@@ -112,6 +112,7 @@ class RangeImagesDataset(Dataset):
             output_range_image = read_range_image_binary(output_range_image_filename)
 
             input_range_image = skimage.measure.block_reduce(input_range_image, block_size=(4,2))
+            output_range_image = skimage.measure.block_reduce(output_range_image, block_size=(2,1))
             # Crop the values out of the detection range
             input_range_image[input_range_image < 10e-10] = self.lidar_in['norm_r']
             input_range_image[input_range_image < self.lidar_in['min_r']] = 0.0

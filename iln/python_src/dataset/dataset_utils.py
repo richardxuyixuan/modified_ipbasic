@@ -34,8 +34,9 @@ def read_range_image_binary(filename, dtype=np.float16, lidar=None):
 
     range_image = np.load(filename)[0,0]
     proj_mask = np.load(filename.replace('in_vol','proj_mask')).astype(np.float32)[0]
-    # proj_mask = torch.from_numpy(proj_mask).clone()[0]
-    # proj = torch.from_numpy(proj).clone()[0]
+    sensor_img_stds = np.array([[21.2873]])
+    sensor_img_means = np.array([[35.2812]])
+    range_image = (range_image * sensor_img_stds) + sensor_img_means
     range_image = range_image * proj_mask
 
     # range_image_file = open(filename, 'rb')
@@ -48,13 +49,13 @@ def read_range_image_binary(filename, dtype=np.float16, lidar=None):
     # range_image = range_image.reshape(size[1], size[0])
     # range_image = range_image.transpose()
     # range_image = range_image.astype(np.float32)
-
+    #
     # if lidar is not None:
     #     # Crop the values out of the detection range
     #     range_image[range_image < 10e-10] = lidar['norm_r']
     #     range_image[range_image < lidar['min_r']] = 0.0
     #     range_image[range_image > lidar['max_r']] = lidar['norm_r']
-
+    #
     # range_image_file.close()
 
     return range_image.astype(np.float32)
@@ -143,8 +144,10 @@ def initialize_lidar(channels, points_per_ring):
     lidar['norm_r'] = 100.0
     lidar['max_r'] = 70.0
     lidar['min_r'] = 2.0
-    lidar['max_v'] = 10.0
-    lidar['min_v'] = -30.0
+    lidar['max_v'] = 20.0
+    lidar['min_v'] = -10.0
+    # lidar['max_v'] = 15.0
+    # lidar['min_v'] = -15.0
     lidar['max_h'] = 180.0
     lidar['min_h'] = -180.0
     lidar['frequency'] = 10

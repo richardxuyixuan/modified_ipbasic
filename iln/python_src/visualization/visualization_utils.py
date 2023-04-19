@@ -1,7 +1,7 @@
-import rospy
-from sensor_msgs.msg import PointCloud2, PointField
-import sensor_msgs.point_cloud2 as pc2
-from std_msgs.msg import Header
+# import rospy
+# from sensor_msgs.msg import PointCloud2, PointField
+# import sensor_msgs.point_cloud2 as pc2
+# from std_msgs.msg import Header
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -56,7 +56,7 @@ def get_pointcloud_xyzi(points, stamp=None, frame_id='map'):
     return pc2.create_cloud(header, fields, points)
 
 
-def draw_range_image(range_image, colormap='rainbow', filename=None, vis_mask=None):
+def draw_range_image(range_image, colormap='viridis', filename=None, vis_mask=None):
     """
     Visualize the range image to a window or a file.
 

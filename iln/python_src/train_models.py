@@ -37,6 +37,8 @@ def is_valid_check_point():
 
 def print_log(epoch, loss_sum, loss_avg, directory=None):
     log_msg = ('%03d %.4f %.4f' % (epoch, loss_sum, loss_avg))
+    if not os.path.exists(directory):
+        os.makedirs(os.path.join(directory))
     with open(os.path.join(directory, 'training_loss_history.txt'), 'a') as f:
         f.write(log_msg + '\n')
 
